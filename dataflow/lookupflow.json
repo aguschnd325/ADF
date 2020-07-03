@@ -1,5 +1,5 @@
 {
-	"name": "dataflow1",
+	"name": "lookupflow",
 	"properties": {
 		"type": "MappingDataFlow",
 		"typeProperties": {
@@ -9,12 +9,19 @@
 						"referenceName": "sumsalesADFAAS",
 						"type": "DatasetReference"
 					},
-					"name": "source1"
+					"name": "salesRaw"
+				},
+				{
+					"dataset": {
+						"referenceName": "salestransformed",
+						"type": "DatasetReference"
+					},
+					"name": "referenceItem"
 				}
 			],
 			"sinks": [],
 			"transformations": [],
-			"script": "source(output(\n\t\t{entry no} as integer,\n\t\tcustomer_no as string,\n\t\tcustomer_name as string,\n\t\titem_no as string,\n\t\titem_desc as string,\n\t\titem_qty as decimal(18,0),\n\t\tsold_date as date\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> source1"
+			"script": "source(output(\n\t\t{entry no} as integer,\n\t\tcustomer_no as string,\n\t\tcustomer_name as string,\n\t\titem_no as string,\n\t\titem_desc as string,\n\t\titem_qty as decimal(18,0),\n\t\tsold_date as date\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> salesRaw\nsource(output(\n\t\t{entry no} as integer,\n\t\tcustomer_no as string,\n\t\tcustomer_name as string,\n\t\titem_no as string,\n\t\titem_desc as string,\n\t\titem_qty as decimal(18,0),\n\t\tsold_date as date\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> referenceItem"
 		}
 	}
 }

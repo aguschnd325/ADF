@@ -1,0 +1,30 @@
+{
+	"name": "AzureSqlTable1",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "adfaas",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "Entry No_",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "item_no",
+				"type": "nvarchar"
+			},
+			{
+				"name": "item_ref",
+				"type": "nvarchar"
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "item_reference"
+		}
+	}
+}
