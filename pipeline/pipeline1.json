@@ -141,7 +141,7 @@
 				"typeProperties": {
 					"source": {
 						"type": "SqlServerSource",
-						"sqlReaderQuery": "select ile.[Entry No_],(ile.[Item No_])as item_no,i.Description as item_name,ile.[Source No_] as cust_no, c.Name as cust_name,\n  ile.Quantity, ile.[Posting Date] as sold_date \nfrom [LF$Item Ledger Entry] ile\n  left join LF$Customer c on ile.[Source No_]=c.[No_]\n  left join LF$Item i on ile.[Item No_]=i.[No_]\n  where ([Posting Date] between '2020-05-01' and '2020-05-20') and (ile.[Source No_] like 'C%')",
+						"sqlReaderQuery": "select ile.[Entry No_],(ile.[Item No_])as item_no,i.Description as item_name,ile.[Source No_] as cust_no, c.Name as cust_name,\n  ile.Quantity, ile.[Posting Date] as sold_date \nfrom [LF$Item Ledger Entry] ile\n  left join LF$Customer c on ile.[Source No_]=c.[No_]\n  left join LF$Item i on ile.[Item No_]=i.[No_]\n  where ([Posting Date]='2020-06-30') and (ile.[Source No_] like 'C%')",
 						"queryTimeout": "02:00:00"
 					},
 					"sink": {
