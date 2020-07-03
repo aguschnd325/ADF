@@ -1,0 +1,49 @@
+{
+	"name": "sumsalesADFAAS",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "adfaas",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "entry no",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "customer_no",
+				"type": "nvarchar"
+			},
+			{
+				"name": "customer_name",
+				"type": "nvarchar"
+			},
+			{
+				"name": "item_no",
+				"type": "nvarchar"
+			},
+			{
+				"name": "item_desc",
+				"type": "nvarchar"
+			},
+			{
+				"name": "item_qty",
+				"type": "decimal",
+				"precision": 18,
+				"scale": 0
+			},
+			{
+				"name": "sold_date",
+				"type": "date"
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "sum sales"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

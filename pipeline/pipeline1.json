@@ -1,0 +1,243 @@
+{
+	"name": "pipeline1",
+	"properties": {
+		"activities": [
+			{
+				"name": "copy_sales_tmj",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzurePostgreSqlSource",
+						"query": "SELECT mt.rs_id as custno, cast(mt.barang_id as varchar) as item_no,cast(mb.nama as varchar) as item_desc,cast(mt.qty as decimal) as item_qty,cast(mt.updated_at as date) as sold_date,mrs.kode_rs as cust_name\nFROM public.m_transaction mt\nleft outer join public.m_rs mrs on mt.rs_id=mrs.id\nleft outer join public.m_barang mb on mt.barang_id=mb.id"
+					},
+					"sink": {
+						"type": "AzureSqlSink"
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "custno",
+									"type": "Int32",
+									"physicalType": "integer"
+								},
+								"sink": {
+									"name": "customer_no",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "cust_name",
+									"type": "String",
+									"physicalType": "character"
+								},
+								"sink": {
+									"name": "customer_name",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "item_no",
+									"type": "String",
+									"physicalType": "character varying"
+								},
+								"sink": {
+									"name": "item_no",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "item_desc",
+									"type": "String",
+									"physicalType": "character varying"
+								},
+								"sink": {
+									"name": "item_desc",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "item_qty",
+									"type": "Decimal",
+									"physicalType": "numeric"
+								},
+								"sink": {
+									"name": "item_qty",
+									"type": "Decimal",
+									"physicalType": "decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "sold_date",
+									"type": "DateTime",
+									"physicalType": "date"
+								},
+								"sink": {
+									"name": "sold_date",
+									"type": "DateTime",
+									"physicalType": "date"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "tmj_db",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "sumsalesADFAAS",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "copysalesASM",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": "select ile.[Entry No_],(ile.[Item No_])as item_no,i.Description as item_name,ile.[Source No_] as cust_no, c.Name as cust_name,\n  ile.Quantity, ile.[Posting Date] as sold_date \nfrom [LF$Item Ledger Entry] ile\n  left join LF$Customer c on ile.[Source No_]=c.[No_]\n  left join LF$Item i on ile.[Item No_]=i.[No_]\n  where ([Posting Date] between '2020-05-01' and '2020-05-20') and (ile.[Source No_] like 'C%')",
+						"queryTimeout": "02:00:00"
+					},
+					"sink": {
+						"type": "AzureSqlSink"
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "cust_no",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "customer_no",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "cust_name",
+									"type": "String"
+								},
+								"sink": {
+									"name": "customer_name",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "item_no",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "item_no",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "item_name",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "item_desc",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Quantity",
+									"type": "Decimal",
+									"physicalType": "decimal"
+								},
+								"sink": {
+									"name": "item_qty",
+									"type": "Decimal",
+									"physicalType": "decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "sold_date",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								},
+								"sink": {
+									"name": "sold_date",
+									"type": "DateTime",
+									"physicalType": "date"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "asmSales",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "sumsalesADFAAS",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"annotations": []
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

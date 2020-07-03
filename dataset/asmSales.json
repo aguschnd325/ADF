@@ -1,0 +1,304 @@
+{
+	"name": "asmSales",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "sql_asm",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "SqlServerTable",
+		"schema": [
+			{
+				"name": "timestamp",
+				"type": "timestamp"
+			},
+			{
+				"name": "Entry No_",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "Item No_",
+				"type": "nvarchar"
+			},
+			{
+				"name": "Posting Date",
+				"type": "datetime",
+				"precision": 23,
+				"scale": 3
+			},
+			{
+				"name": "Entry Type",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "Source No_",
+				"type": "nvarchar"
+			},
+			{
+				"name": "Document No_",
+				"type": "nvarchar"
+			},
+			{
+				"name": "Description",
+				"type": "nvarchar"
+			},
+			{
+				"name": "Location Code",
+				"type": "nvarchar"
+			},
+			{
+				"name": "Quantity",
+				"type": "decimal",
+				"precision": 38,
+				"scale": 20
+			},
+			{
+				"name": "Remaining Quantity",
+				"type": "decimal",
+				"precision": 38,
+				"scale": 20
+			},
+			{
+				"name": "Invoiced Quantity",
+				"type": "decimal",
+				"precision": 38,
+				"scale": 20
+			},
+			{
+				"name": "Applies-to Entry",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "Open",
+				"type": "tinyint",
+				"precision": 3
+			},
+			{
+				"name": "Global Dimension 1 Code",
+				"type": "nvarchar"
+			},
+			{
+				"name": "Global Dimension 2 Code",
+				"type": "nvarchar"
+			},
+			{
+				"name": "Positive",
+				"type": "tinyint",
+				"precision": 3
+			},
+			{
+				"name": "Source Type",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "Drop Shipment",
+				"type": "tinyint",
+				"precision": 3
+			},
+			{
+				"name": "Transaction Type",
+				"type": "nvarchar"
+			},
+			{
+				"name": "Transport Method",
+				"type": "nvarchar"
+			},
+			{
+				"name": "Country_Region Code",
+				"type": "nvarchar"
+			},
+			{
+				"name": "Entry_Exit Point",
+				"type": "nvarchar"
+			},
+			{
+				"name": "Document Date",
+				"type": "datetime",
+				"precision": 23,
+				"scale": 3
+			},
+			{
+				"name": "External Document No_",
+				"type": "nvarchar"
+			},
+			{
+				"name": "Area",
+				"type": "nvarchar"
+			},
+			{
+				"name": "Transaction Specification",
+				"type": "nvarchar"
+			},
+			{
+				"name": "No_ Series",
+				"type": "nvarchar"
+			},
+			{
+				"name": "Document Type",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "Document Line No_",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "Order Type",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "Order No_",
+				"type": "nvarchar"
+			},
+			{
+				"name": "Order Line No_",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "Dimension Set ID",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "Assemble to Order",
+				"type": "tinyint",
+				"precision": 3
+			},
+			{
+				"name": "Job No_",
+				"type": "nvarchar"
+			},
+			{
+				"name": "Job Task No_",
+				"type": "nvarchar"
+			},
+			{
+				"name": "Job Purchase",
+				"type": "tinyint",
+				"precision": 3
+			},
+			{
+				"name": "Variant Code",
+				"type": "nvarchar"
+			},
+			{
+				"name": "Qty_ per Unit of Measure",
+				"type": "decimal",
+				"precision": 38,
+				"scale": 20
+			},
+			{
+				"name": "Unit of Measure Code",
+				"type": "nvarchar"
+			},
+			{
+				"name": "Derived from Blanket Order",
+				"type": "tinyint",
+				"precision": 3
+			},
+			{
+				"name": "Cross-Reference No_",
+				"type": "nvarchar"
+			},
+			{
+				"name": "Originally Ordered No_",
+				"type": "nvarchar"
+			},
+			{
+				"name": "Originally Ordered Var_ Code",
+				"type": "nvarchar"
+			},
+			{
+				"name": "Out-of-Stock Substitution",
+				"type": "tinyint",
+				"precision": 3
+			},
+			{
+				"name": "Item Category Code",
+				"type": "nvarchar"
+			},
+			{
+				"name": "Nonstock",
+				"type": "tinyint",
+				"precision": 3
+			},
+			{
+				"name": "Purchasing Code",
+				"type": "nvarchar"
+			},
+			{
+				"name": "Product Group Code",
+				"type": "nvarchar"
+			},
+			{
+				"name": "Completely Invoiced",
+				"type": "tinyint",
+				"precision": 3
+			},
+			{
+				"name": "Last Invoice Date",
+				"type": "datetime",
+				"precision": 23,
+				"scale": 3
+			},
+			{
+				"name": "Applied Entry to Adjust",
+				"type": "tinyint",
+				"precision": 3
+			},
+			{
+				"name": "Correction",
+				"type": "tinyint",
+				"precision": 3
+			},
+			{
+				"name": "Shipped Qty_ Not Returned",
+				"type": "decimal",
+				"precision": 38,
+				"scale": 20
+			},
+			{
+				"name": "Prod_ Order Comp_ Line No_",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "Serial No_",
+				"type": "nvarchar"
+			},
+			{
+				"name": "Lot No_",
+				"type": "nvarchar"
+			},
+			{
+				"name": "Warranty Date",
+				"type": "datetime",
+				"precision": 23,
+				"scale": 3
+			},
+			{
+				"name": "Expiration Date",
+				"type": "datetime",
+				"precision": 23,
+				"scale": 3
+			},
+			{
+				"name": "Item Tracking",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "Return Reason Code",
+				"type": "nvarchar"
+			}
+		]
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}
