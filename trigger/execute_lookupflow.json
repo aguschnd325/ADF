@@ -2,7 +2,7 @@
 	"name": "execute_lookupflow",
 	"properties": {
 		"annotations": [],
-		"runtimeState": "Started",
+		"runtimeState": "Stopped",
 		"pipelines": [
 			{
 				"pipelineReference": {
@@ -16,7 +16,7 @@
 			"recurrence": {
 				"frequency": "Minute",
 				"interval": 2,
-				"startTime": "'2020-07-06T11:55:00Z",
+				"startTime": "'2020-07-06T11:55:00",
 				"timeZone": "UTC"
 			}
 		}
