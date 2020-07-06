@@ -1,0 +1,68 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "AzureDFH"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/lookupflow')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "sumsalesADFAAS",
+								"type": "DatasetReference"
+							},
+							"name": "salesRaw"
+						},
+						{
+							"dataset": {
+								"referenceName": "AzureSqlTable1",
+								"type": "DatasetReference"
+							},
+							"name": "referenceItem"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "salestransformed",
+								"type": "DatasetReference"
+							},
+							"name": "sinkmatch"
+						},
+						{
+							"dataset": {
+								"referenceName": "salestransformed",
+								"type": "DatasetReference"
+							},
+							"name": "sinknomatch"
+						}
+					],
+					"transformations": [
+						{
+							"name": "Lookup1"
+						},
+						{
+							"name": "ConditionalSplit1"
+						}
+					],
+					"script": "source(output(\n\t\t{entry no} as integer,\n\t\tcustomer_no as string,\n\t\tcustomer_name as string,\n\t\titem_no as string,\n\t\titem_desc as string,\n\t\titem_qty as decimal(18,0),\n\t\tsold_date as date\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> salesRaw\nsource(output(\n\t\t{Entry No_} as integer,\n\t\titem_no as string,\n\t\titem_ref as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> referenceItem\nsalesRaw, referenceItem lookup(salesRaw@item_no == referenceItem@item_no,\n\tmultiple: true,\n\tbroadcast: 'auto')~> Lookup1\nLookup1 split(equals(salesRaw@item_no,referenceItem@item_no),\n\tdisjoint: true) ~> ConditionalSplit1@(ismatch, nomatch)\nConditionalSplit1@ismatch sink(input(\n\t\t{entry no} as integer,\n\t\tcustomer_no as string,\n\t\tcustomer_name as string,\n\t\titem_no as string,\n\t\titem_desc as string,\n\t\titem_qty as decimal(18,0),\n\t\tsold_date as date\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tformat: 'table',\n\tpreSQLs:['SET IDENTITY_INSERT dbo.salestransformed ON'],\n\tmapColumn(\n\t\t{entry no},\n\t\tcustomer_no,\n\t\tcustomer_name,\n\t\titem_desc,\n\t\titem_qty,\n\t\tsold_date,\n\t\titem_no = ConditionalSplit1@ismatch@item_no\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> sinkmatch\nConditionalSplit1@nomatch sink(input(\n\t\t{entry no} as integer,\n\t\tcustomer_no as string,\n\t\tcustomer_name as string,\n\t\titem_no as string,\n\t\titem_desc as string,\n\t\titem_qty as decimal(18,0),\n\t\tsold_date as date\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tformat: 'table',\n\tpreSQLs:['SET IDENTITY_INSERT dbo.salestransformed ON'],\n\tmapColumn(\n\t\t{entry no},\n\t\tcustomer_no,\n\t\tcustomer_name,\n\t\titem_no = ConditionalSplit1@nomatch@item_no,\n\t\titem_desc,\n\t\titem_qty,\n\t\tsold_date\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> sinknomatch"
+				}
+			},
+			"dependsOn": []
+		}
+	]
+}
