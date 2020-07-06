@@ -16,7 +16,7 @@
 			"recurrence": {
 				"frequency": "Minute",
 				"interval": 2,
-				"startTime": "'07/06/2020 12:05 PM",
+				"startTime": "2020-07-06T12:30:00.000Z",
 				"timeZone": "UTC"
 			}
 		}
