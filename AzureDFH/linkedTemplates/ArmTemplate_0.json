@@ -666,12 +666,12 @@
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/execut_lookupflow')]",
+			"name": "[concat(parameters('factoryName'), '/execute_flow')]",
 			"type": "Microsoft.DataFactory/factories/triggers",
 			"apiVersion": "2018-06-01",
 			"properties": {
 				"annotations": [],
-				"runtimeState": "Stopped",
+				"runtimeState": "Started",
 				"pipelines": [
 					{
 						"pipelineReference": {
@@ -686,7 +686,7 @@
 					"recurrence": {
 						"frequency": "Minute",
 						"interval": 1,
-						"startTime": "07/06/2020 1:12 PM",
+						"startTime": "2020-07-06T13:15:00.000Z",
 						"timeZone": "UTC"
 					}
 				}
