@@ -37,7 +37,7 @@
 				"type": "Copy",
 				"dependsOn": [
 					{
-						"activity": "table_cleansing",
+						"activity": "Stored procedure1",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -158,8 +158,8 @@
 				]
 			},
 			{
-				"name": "table_cleansing",
-				"type": "ExecuteDataFlow",
+				"name": "Stored procedure1",
+				"type": "SqlServerStoredProcedure",
 				"dependsOn": [],
 				"policy": {
 					"timeout": "7.00:00:00",
@@ -170,14 +170,11 @@
 				},
 				"userProperties": [],
 				"typeProperties": {
-					"dataflow": {
-						"referenceName": "table_cleansing",
-						"type": "DataFlowReference"
-					},
-					"compute": {
-						"coreCount": 8,
-						"computeType": "General"
-					}
+					"storedProcedureName": "[dbo].[cleanse_tableRawandCooked]"
+				},
+				"linkedServiceName": {
+					"referenceName": "adfaas",
+					"type": "LinkedServiceReference"
 				}
 			}
 		],
