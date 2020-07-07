@@ -41,7 +41,14 @@
 					{
 						"name": "lookupflow",
 						"type": "ExecuteDataFlow",
-						"dependsOn": [],
+						"dependsOn": [
+							{
+								"activity": "Stored procedure1",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
 						"policy": {
 							"timeout": "7.00:00:00",
 							"retry": 0,
@@ -58,7 +65,8 @@
 								"datasetParameters": {
 									"salesRaw": {},
 									"referenceItem": {},
-									"sinkmatch": {}
+									"sinkmatch": {},
+									"sinknomatch": {}
 								}
 							},
 							"staging": {},
@@ -67,12 +75,255 @@
 								"computeType": "General"
 							}
 						}
+					},
+					{
+						"name": "Copy data1",
+						"description": "",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "Lookup1",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "SqlServerSource",
+								"sqlReaderQuery": {
+									"value": "@if(equals(activity('Lookup1').output.firstRow.lastentry,0),\n\nconcat('select ile.[Entry No_],(ile.[Item No_])as item_no,i.Description as item_name,ile.[Source No_] as cust_no, c.Name as cust_name,\n  ile.Quantity, ile.[Posting Date] as sold_date \nfrom [LF$Item Ledger Entry] ile\n  left join LF$Customer c on ile.[Source No_]=c.[No_]\n  left join LF$Item i on ile.[Item No_]=i.[No_]\n  where ([Posting Date]=''2020-05-30'') and \n  (ile.[Source No_] like ''C%'') order by ile.[Entry No_]'),\n\nconcat(\n'select ile.[Entry No_],(ile.[Item No_])as item_no,i.Description as item_name,ile.[Source No_] as cust_no, c.Name as cust_name,\n  ile.Quantity, ile.[Posting Date] as sold_date \nfrom [LF$Item Ledger Entry] ile\n  left join LF$Customer c on ile.[Source No_]=c.[No_]\n  left join LF$Item i on ile.[Item No_]=i.[No_]\n  where (ile.[Source No_] like ''C%'') and\n  (ile.[Entry No_] between ',activity('Lookup1').output.firstRow.lastentry,' and ','(select max(ile.[Entry No_])\nfrom [LF$Item Ledger Entry] ile\nwhere ([Posting Date] between ''2020-05-30'' and ''2020-06-01'') and \n(ile.[Source No_] like ''C%''))',') order by ile.[Entry No_]'\n)\n\n)",
+									"type": "Expression"
+								},
+								"queryTimeout": "02:00:00"
+							},
+							"sink": {
+								"type": "AzureSqlSink"
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"mappings": [
+									{
+										"source": {
+											"name": "Entry No_",
+											"type": "Int32",
+											"physicalType": "int"
+										},
+										"sink": {
+											"name": "entry no",
+											"type": "Int32",
+											"physicalType": "int"
+										}
+									},
+									{
+										"source": {
+											"name": "cust_no",
+											"type": "String",
+											"physicalType": "nvarchar"
+										},
+										"sink": {
+											"name": "customer_no",
+											"type": "String",
+											"physicalType": "nvarchar"
+										}
+									},
+									{
+										"source": {
+											"name": "cust_name",
+											"type": "String",
+											"physicalType": "nvarchar"
+										},
+										"sink": {
+											"name": "customer_name",
+											"type": "String",
+											"physicalType": "nvarchar"
+										}
+									},
+									{
+										"source": {
+											"name": "item_no",
+											"type": "String",
+											"physicalType": "nvarchar"
+										},
+										"sink": {
+											"name": "item_no",
+											"type": "String",
+											"physicalType": "nvarchar"
+										}
+									},
+									{
+										"source": {
+											"name": "item_name",
+											"type": "String",
+											"physicalType": "nvarchar"
+										},
+										"sink": {
+											"name": "item_desc",
+											"type": "String",
+											"physicalType": "nvarchar"
+										}
+									},
+									{
+										"source": {
+											"name": "Quantity",
+											"type": "Decimal",
+											"physicalType": "decimal"
+										},
+										"sink": {
+											"name": "item_qty",
+											"type": "Decimal",
+											"physicalType": "decimal"
+										}
+									},
+									{
+										"source": {
+											"name": "sold_date",
+											"type": "DateTime",
+											"physicalType": "datetime"
+										},
+										"sink": {
+											"name": "sold_date",
+											"type": "DateTime",
+											"physicalType": "date"
+										}
+									}
+								],
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "asmSales",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "sumsalesADFAAS",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						]
+					},
+					{
+						"name": "Lookup1",
+						"type": "Lookup",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"sqlReaderQuery": "select isnull(max([entry no])+1,0) as lastentry from dbo.[sum sales]",
+								"queryTimeout": "02:00:00"
+							},
+							"dataset": {
+								"referenceName": "sumsalesADFAAS",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						}
+					},
+					{
+						"name": "Stored procedure1",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "Copy data1",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[cleanseSalesTransfomed]"
+						},
+						"linkedServiceName": {
+							"referenceName": "adfaas",
+							"type": "LinkedServiceReference"
+						}
 					}
 				],
+				"variables": {
+					"rawsalesentryno": {
+						"type": "String",
+						"defaultValue": "0"
+					}
+				},
 				"annotations": []
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/dataflows/lookupflow')]"
+				"[concat(variables('factoryId'), '/dataflows/lookupflow')]",
+				"[concat(variables('factoryId'), '/datasets/asmSales')]",
+				"[concat(variables('factoryId'), '/datasets/sumsalesADFAAS')]",
+				"[concat(variables('factoryId'), '/linkedServices/adfaas')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/AzurePostgreSqlTable1')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzurePostgreSql1",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzurePostgreSqlTable",
+				"schema": [],
+				"typeProperties": {}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzurePostgreSql1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/AzurePostgreSqlTable2')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzurePostgreSql1",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzurePostgreSqlTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": "public",
+					"table": "tr_lbhp"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzurePostgreSql1')]"
 			]
 		},
 		{
@@ -609,6 +860,36 @@
 			"dependsOn": []
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/execute_flow')]",
+			"type": "Microsoft.DataFactory/factories/triggers",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"runtimeState": "Stopped",
+				"pipelines": [
+					{
+						"pipelineReference": {
+							"referenceName": "pipeline1",
+							"type": "PipelineReference"
+						},
+						"parameters": {}
+					}
+				],
+				"type": "ScheduleTrigger",
+				"typeProperties": {
+					"recurrence": {
+						"frequency": "Minute",
+						"interval": 30,
+						"startTime": "2020-07-06T13:50:00Z",
+						"timeZone": "UTC"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/pipelines/pipeline1')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/lookupflow')]",
 			"type": "Microsoft.DataFactory/factories/dataflows",
 			"apiVersion": "2018-06-01",
@@ -638,6 +919,13 @@
 								"type": "DatasetReference"
 							},
 							"name": "sinkmatch"
+						},
+						{
+							"dataset": {
+								"referenceName": "salestransformed",
+								"type": "DatasetReference"
+							},
+							"name": "sinknomatch"
 						}
 					],
 					"transformations": [
@@ -648,43 +936,13 @@
 							"name": "ConditionalSplit1"
 						}
 					],
-					"script": "source(output(\n\t\t{entry no} as integer,\n\t\tcustomer_no as string,\n\t\tcustomer_name as string,\n\t\titem_no as string,\n\t\titem_desc as string,\n\t\titem_qty as decimal(18,0),\n\t\tsold_date as date\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> salesRaw\nsource(output(\n\t\t{Entry No_} as integer,\n\t\titem_no as string,\n\t\titem_ref as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> referenceItem\nsalesRaw, referenceItem lookup(salesRaw@item_no == referenceItem@item_no,\n\tmultiple: true,\n\tbroadcast: 'auto')~> Lookup1\nLookup1 split(equals(salesRaw@item_no,referenceItem@item_no),\n\tdisjoint: true) ~> ConditionalSplit1@(ismatch, nomatch)\nConditionalSplit1@ismatch sink(input(\n\t\t{entry no} as integer,\n\t\tcustomer_no as string,\n\t\tcustomer_name as string,\n\t\titem_no as string,\n\t\titem_desc as string,\n\t\titem_qty as decimal(18,0),\n\t\tsold_date as date\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tformat: 'table',\n\tpreSQLs:['SET IDENTITY_INSERT dbo.salestransformed ON'],\n\tmapColumn(\n\t\t{entry no},\n\t\tcustomer_no,\n\t\tcustomer_name,\n\t\titem_desc,\n\t\titem_qty,\n\t\tsold_date,\n\t\titem_no = item_ref\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> sinkmatch"
+					"script": "source(output(\n\t\t{entry no} as integer,\n\t\tcustomer_no as string,\n\t\tcustomer_name as string,\n\t\titem_no as string,\n\t\titem_desc as string,\n\t\titem_qty as decimal(18,0),\n\t\tsold_date as date\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> salesRaw\nsource(output(\n\t\t{Entry No_} as integer,\n\t\titem_no as string,\n\t\titem_ref as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> referenceItem\nsalesRaw, referenceItem lookup(salesRaw@item_no == referenceItem@item_no,\n\tmultiple: false,\n\tpickup: 'first',\n\tasc({Entry No_}, true),\n\tbroadcast: 'auto')~> Lookup1\nLookup1 split(equals(salesRaw@item_no,referenceItem@item_no),\n\tdisjoint: false) ~> ConditionalSplit1@(ismatch, nomatch)\nConditionalSplit1@ismatch sink(input(\n\t\t{entry no} as integer,\n\t\tcustomer_no as string,\n\t\tcustomer_name as string,\n\t\titem_no as string,\n\t\titem_desc as string,\n\t\titem_qty as decimal(18,0),\n\t\tsold_date as date\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tformat: 'table',\n\tmapColumn(\n\t\t{entry no},\n\t\tcustomer_no,\n\t\tcustomer_name,\n\t\titem_no = item_ref,\n\t\titem_desc,\n\t\titem_qty,\n\t\tsold_date\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> sinkmatch\nConditionalSplit1@nomatch sink(input(\n\t\t{entry no} as integer,\n\t\tcustomer_no as string,\n\t\tcustomer_name as string,\n\t\titem_no as string,\n\t\titem_desc as string,\n\t\titem_qty as decimal(18,0),\n\t\tsold_date as date\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tformat: 'table',\n\tmapColumn(\n\t\t{entry no},\n\t\tcustomer_no,\n\t\tcustomer_name,\n\t\titem_no = ConditionalSplit1@nomatch@item_no,\n\t\titem_desc,\n\t\titem_qty,\n\t\tsold_date\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> sinknomatch"
 				}
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/sumsalesADFAAS')]",
 				"[concat(variables('factoryId'), '/datasets/AzureSqlTable1')]",
 				"[concat(variables('factoryId'), '/datasets/salestransformed')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/execute_flow')]",
-			"type": "Microsoft.DataFactory/factories/triggers",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"annotations": [],
-				"runtimeState": "Started",
-				"pipelines": [
-					{
-						"pipelineReference": {
-							"referenceName": "pipeline1",
-							"type": "PipelineReference"
-						},
-						"parameters": {}
-					}
-				],
-				"type": "ScheduleTrigger",
-				"typeProperties": {
-					"recurrence": {
-						"frequency": "Minute",
-						"interval": 30,
-						"startTime": "2020-07-06T13:50:00.000Z",
-						"timeZone": "UTC"
-					}
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/pipelines/pipeline1')]"
 			]
 		}
 	]
