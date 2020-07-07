@@ -5,6 +5,12 @@
 			"referenceName": "AzurePostgreSql1",
 			"type": "LinkedServiceReference"
 		},
+		"parameters": {
+			"lastentry": {
+				"type": "int",
+				"defaultValue": 0
+			}
+		},
 		"annotations": [],
 		"type": "AzurePostgreSqlTable",
 		"schema": [],
