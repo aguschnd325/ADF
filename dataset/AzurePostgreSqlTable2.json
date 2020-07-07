@@ -1,0 +1,16 @@
+{
+	"name": "AzurePostgreSqlTable2",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzurePostgreSql1",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzurePostgreSqlTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": "public",
+			"table": "tr_lbhp"
+		}
+	}
+}
