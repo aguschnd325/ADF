@@ -5,14 +5,7 @@
 			{
 				"name": "lookupflow",
 				"type": "ExecuteDataFlow",
-				"dependsOn": [
-					{
-						"activity": "Copy data1",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
+				"dependsOn": [],
 				"policy": {
 					"timeout": "7.00:00:00",
 					"retry": 0,
@@ -34,10 +27,11 @@
 			},
 			{
 				"name": "Copy data1",
+				"description": "",
 				"type": "Copy",
 				"dependsOn": [
 					{
-						"activity": "Stored procedure1",
+						"activity": "Set variable1",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -54,7 +48,7 @@
 				"typeProperties": {
 					"source": {
 						"type": "SqlServerSource",
-						"sqlReaderQuery": "select top 20 ile.[Entry No_],(ile.[Item No_])as item_no,i.Description as item_name,ile.[Source No_] as cust_no, c.Name as cust_name,\n  ile.Quantity, ile.[Posting Date] as sold_date \nfrom [LF$Item Ledger Entry] ile\n  left join LF$Customer c on ile.[Source No_]=c.[No_]\n  left join LF$Item i on ile.[Item No_]=i.[No_]\n  where ([Posting Date]='2020-06-30') and (ile.[Source No_] like 'C%')",
+						"sqlReaderQuery": "@if(equals(variables('rawsalesentryno'),0),\n\nconcat('select top 20 ile.[Entry No_],(ile.[Item No_])as item_no,i.Description as item_name,ile.[Source No_] as cust_no, c.Name as cust_name,\n  ile.Quantity, ile.[Posting Date] as sold_date \nfrom [LF$Item Ledger Entry] ile\n  left join LF$Customer c on ile.[Source No_]=c.[No_]\n  left join LF$Item i on ile.[Item No_]=i.[No_]\n  where ([Posting Date]=''2020-06-30'') and \n  (ile.[Source No_] like ''C%'')'),\n\nconcat(\n'select top 20 ile.[Entry No_],(ile.[Item No_])as item_no,i.Description as item_name,ile.[Source No_] as cust_no, c.Name as cust_name,\n  ile.Quantity, ile.[Posting Date] as sold_date \nfrom [LF$Item Ledger Entry] ile\n  left join LF$Customer c on ile.[Source No_]=c.[No_]\n  left join LF$Item i on ile.[Item No_]=i.[No_]\n  where ([Posting Date]=''2020-06-30'') and \n  (ile.[Source No_] like ''C%'') and\n(ile.[Entry No_] between ',variables('rawsalesentryno'),' and ','(select top 20 max(ile.[Entry No_])\nfrom [LF$Item Ledger Entry] ile\n  left join LF$Customer c on ile.[Source No_]=c.[No_]\n  left join LF$Item i on ile.[Item No_]=i.[No_]\n  where ([Posting Date]=''2020-06-30'') and \n  (ile.[Source No_] like ''C%''))',')'\n)\n)",
 						"queryTimeout": "02:00:00"
 					},
 					"sink": {
@@ -64,6 +58,18 @@
 					"translator": {
 						"type": "TabularTranslator",
 						"mappings": [
+							{
+								"source": {
+									"name": "Entry No_",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "entry no",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
 							{
 								"source": {
 									"name": "cust_no",
@@ -158,8 +164,8 @@
 				]
 			},
 			{
-				"name": "Stored procedure1",
-				"type": "SqlServerStoredProcedure",
+				"name": "Lookup1",
+				"type": "Lookup",
 				"dependsOn": [],
 				"policy": {
 					"timeout": "7.00:00:00",
@@ -170,14 +176,43 @@
 				},
 				"userProperties": [],
 				"typeProperties": {
-					"storedProcedureName": "[dbo].[cleanse_tableRawandCooked]"
-				},
-				"linkedServiceName": {
-					"referenceName": "adfaas",
-					"type": "LinkedServiceReference"
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": "select max([entry no]) from dbo.[sum sales]",
+						"queryTimeout": "02:00:00"
+					},
+					"dataset": {
+						"referenceName": "sumsalesADFAAS",
+						"type": "DatasetReference"
+					}
+				}
+			},
+			{
+				"name": "Set variable1",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "Lookup1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "rawsalesentryno",
+					"value": {
+						"value": "@activity('Lookup1').output",
+						"type": "Expression"
+					}
 				}
 			}
 		],
+		"variables": {
+			"rawsalesentryno": {
+				"type": "String"
+			}
+		},
 		"annotations": []
 	},
 	"type": "Microsoft.DataFactory/factories/pipelines"
