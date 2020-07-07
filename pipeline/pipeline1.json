@@ -31,7 +31,7 @@
 				"type": "Copy",
 				"dependsOn": [
 					{
-						"activity": "Set variable1",
+						"activity": "Lookup1",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -48,7 +48,10 @@
 				"typeProperties": {
 					"source": {
 						"type": "SqlServerSource",
-						"sqlReaderQuery": "@if(equals(variables('rawsalesentryno'),0),\n\nconcat('select top 20 ile.[Entry No_],(ile.[Item No_])as item_no,i.Description as item_name,ile.[Source No_] as cust_no, c.Name as cust_name,\n  ile.Quantity, ile.[Posting Date] as sold_date \nfrom [LF$Item Ledger Entry] ile\n  left join LF$Customer c on ile.[Source No_]=c.[No_]\n  left join LF$Item i on ile.[Item No_]=i.[No_]\n  where ([Posting Date]=''2020-06-30'') and \n  (ile.[Source No_] like ''C%'')'),\n\nconcat(\n'select top 20 ile.[Entry No_],(ile.[Item No_])as item_no,i.Description as item_name,ile.[Source No_] as cust_no, c.Name as cust_name,\n  ile.Quantity, ile.[Posting Date] as sold_date \nfrom [LF$Item Ledger Entry] ile\n  left join LF$Customer c on ile.[Source No_]=c.[No_]\n  left join LF$Item i on ile.[Item No_]=i.[No_]\n  where ([Posting Date]=''2020-06-30'') and \n  (ile.[Source No_] like ''C%'') and\n(ile.[Entry No_] between ',variables('rawsalesentryno'),' and ','(select top 20 max(ile.[Entry No_])\nfrom [LF$Item Ledger Entry] ile\n  left join LF$Customer c on ile.[Source No_]=c.[No_]\n  left join LF$Item i on ile.[Item No_]=i.[No_]\n  where ([Posting Date]=''2020-06-30'') and \n  (ile.[Source No_] like ''C%''))',')'\n)\n)",
+						"sqlReaderQuery": {
+							"value": "@if(equals(activity('Lookup1').output,0),\n\nconcat('select top 20 ile.[Entry No_],(ile.[Item No_])as item_no,i.Description as item_name,ile.[Source No_] as cust_no, c.Name as cust_name,\n  ile.Quantity, ile.[Posting Date] as sold_date \nfrom [LF$Item Ledger Entry] ile\n  left join LF$Customer c on ile.[Source No_]=c.[No_]\n  left join LF$Item i on ile.[Item No_]=i.[No_]\n  where ([Posting Date]=''2020-06-30'') and \n  (ile.[Source No_] like ''C%'')'),\n\nconcat(\n'select top 20 ile.[Entry No_],(ile.[Item No_])as item_no,i.Description as item_name,ile.[Source No_] as cust_no, c.Name as cust_name,\n  ile.Quantity, ile.[Posting Date] as sold_date \nfrom [LF$Item Ledger Entry] ile\n  left join LF$Customer c on ile.[Source No_]=c.[No_]\n  left join LF$Item i on ile.[Item No_]=i.[No_]\n  where ([Posting Date]=''2020-06-30'') and \n  (ile.[Source No_] like ''C%'') and\n(ile.[Entry No_] between ',activity('Lookup1').output,' and ','(select top 20 max(ile.[Entry No_])\nfrom [LF$Item Ledger Entry] ile\n  left join LF$Customer c on ile.[Source No_]=c.[No_]\n  left join LF$Item i on ile.[Item No_]=i.[No_]\n  where ([Posting Date]=''2020-06-30'') and \n  (ile.[Source No_] like ''C%''))',')'\n)\n)",
+							"type": "Expression"
+						},
 						"queryTimeout": "02:00:00"
 					},
 					"sink": {
@@ -178,7 +181,7 @@
 				"typeProperties": {
 					"source": {
 						"type": "AzureSqlSource",
-						"sqlReaderQuery": "select CONVERT(varchar(max),max([entry no])) from dbo.[sum sales]",
+						"sqlReaderQuery": "select max([entry no]) from dbo.[sum sales]",
 						"queryTimeout": "02:00:00"
 					},
 					"dataset": {
@@ -186,28 +189,13 @@
 						"type": "DatasetReference"
 					}
 				}
-			},
-			{
-				"name": "Set variable1",
-				"type": "SetVariable",
-				"dependsOn": [
-					{
-						"activity": "Lookup1",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
-				"userProperties": [],
-				"typeProperties": {
-					"variableName": "rawsalesentryno",
-					"value": {
-						"value": "@activity('Lookup1').output",
-						"type": "Expression"
-					}
-				}
 			}
 		],
+		"parameters": {
+			"rawsalesentryno": {
+				"type": "int"
+			}
+		},
 		"variables": {
 			"rawsalesentryno": {
 				"type": "String",
