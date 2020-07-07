@@ -1,0 +1,764 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name"
+		},
+		"adfaas": {
+			"type": "string"
+		},
+		"sql_asm": {
+			"type": "string"
+		},
+		"transformedtableSALES": {
+			"type": "string"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/pipeline1')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "lookupflow",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [
+							{
+								"activity": "Stored procedure1",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "lookupflow",
+								"type": "DataFlowReference"
+							},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							}
+						}
+					},
+					{
+						"name": "Copy data1",
+						"description": "",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "Lookup1",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "SqlServerSource",
+								"sqlReaderQuery": {
+									"value": "@if(equals(activity('Lookup1').output.firstRow.lastentry,0),\n\nconcat('select ile.[Entry No_],(ile.[Item No_])as item_no,i.Description as item_name,ile.[Source No_] as cust_no, c.Name as cust_name,\n  ile.Quantity, ile.[Posting Date] as sold_date \nfrom [LF$Item Ledger Entry] ile\n  left join LF$Customer c on ile.[Source No_]=c.[No_]\n  left join LF$Item i on ile.[Item No_]=i.[No_]\n  where ([Posting Date]=''2020-05-30'') and \n  (ile.[Source No_] like ''C%'') order by ile.[Entry No_]'),\n\nconcat(\n'select ile.[Entry No_],(ile.[Item No_])as item_no,i.Description as item_name,ile.[Source No_] as cust_no, c.Name as cust_name,\n  ile.Quantity, ile.[Posting Date] as sold_date \nfrom [LF$Item Ledger Entry] ile\n  left join LF$Customer c on ile.[Source No_]=c.[No_]\n  left join LF$Item i on ile.[Item No_]=i.[No_]\n  where (ile.[Source No_] like ''C%'') and\n  (ile.[Entry No_] between ',activity('Lookup1').output.firstRow.lastentry,' and ','(select max(ile.[Entry No_])\nfrom [LF$Item Ledger Entry] ile\nwhere ([Posting Date] between ''2020-05-30'' and ''2020-06-01'') and \n(ile.[Source No_] like ''C%''))',') order by ile.[Entry No_]'\n)\n\n)",
+									"type": "Expression"
+								},
+								"queryTimeout": "02:00:00"
+							},
+							"sink": {
+								"type": "AzureSqlSink"
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"mappings": [
+									{
+										"source": {
+											"name": "Entry No_",
+											"type": "Int32",
+											"physicalType": "int"
+										},
+										"sink": {
+											"name": "entry no",
+											"type": "Int32",
+											"physicalType": "int"
+										}
+									},
+									{
+										"source": {
+											"name": "cust_no",
+											"type": "String",
+											"physicalType": "nvarchar"
+										},
+										"sink": {
+											"name": "customer_no",
+											"type": "String",
+											"physicalType": "nvarchar"
+										}
+									},
+									{
+										"source": {
+											"name": "cust_name",
+											"type": "String",
+											"physicalType": "nvarchar"
+										},
+										"sink": {
+											"name": "customer_name",
+											"type": "String",
+											"physicalType": "nvarchar"
+										}
+									},
+									{
+										"source": {
+											"name": "item_no",
+											"type": "String",
+											"physicalType": "nvarchar"
+										},
+										"sink": {
+											"name": "item_no",
+											"type": "String",
+											"physicalType": "nvarchar"
+										}
+									},
+									{
+										"source": {
+											"name": "item_name",
+											"type": "String",
+											"physicalType": "nvarchar"
+										},
+										"sink": {
+											"name": "item_desc",
+											"type": "String",
+											"physicalType": "nvarchar"
+										}
+									},
+									{
+										"source": {
+											"name": "Quantity",
+											"type": "Decimal",
+											"physicalType": "decimal"
+										},
+										"sink": {
+											"name": "item_qty",
+											"type": "Decimal",
+											"physicalType": "decimal"
+										}
+									},
+									{
+										"source": {
+											"name": "sold_date",
+											"type": "DateTime",
+											"physicalType": "datetime"
+										},
+										"sink": {
+											"name": "sold_date",
+											"type": "DateTime",
+											"physicalType": "date"
+										}
+									}
+								],
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "asmSales",
+								"type": "DatasetReference"
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "sumsalesADFAAS",
+								"type": "DatasetReference"
+							}
+						]
+					},
+					{
+						"name": "Lookup1",
+						"type": "Lookup",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"sqlReaderQuery": "select isnull(max([entry no])+1,0) as lastentry from dbo.[sum sales]",
+								"queryTimeout": "02:00:00"
+							},
+							"dataset": {
+								"referenceName": "sumsalesADFAAS",
+								"type": "DatasetReference"
+							}
+						}
+					},
+					{
+						"name": "Stored procedure1",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "Copy data1",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[cleanseSalesTransfomed]"
+						},
+						"linkedServiceName": {
+							"referenceName": "[parameters('adfaas')]",
+							"type": "LinkedServiceReference"
+						}
+					}
+				],
+				"variables": {
+					"rawsalesentryno": {
+						"type": "String",
+						"defaultValue": "0"
+					}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/lookupflow')]",
+				"[concat(variables('factoryId'), '/datasets/asmSales')]",
+				"[concat(variables('factoryId'), '/datasets/sumsalesADFAAS')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/lookupflow')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "sumsalesADFAAS",
+								"type": "DatasetReference"
+							},
+							"name": "salesRaw"
+						},
+						{
+							"dataset": {
+								"referenceName": "AzureSqlTable1",
+								"type": "DatasetReference"
+							},
+							"name": "referenceItem"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "salestransformed",
+								"type": "DatasetReference"
+							},
+							"name": "sinkmatch"
+						},
+						{
+							"dataset": {
+								"referenceName": "salestransformed",
+								"type": "DatasetReference"
+							},
+							"name": "sinknomatch"
+						}
+					],
+					"transformations": [
+						{
+							"name": "Lookup1"
+						},
+						{
+							"name": "ConditionalSplit1"
+						}
+					],
+					"script": "source(output(\n\t\t{entry no} as integer,\n\t\tcustomer_no as string,\n\t\tcustomer_name as string,\n\t\titem_no as string,\n\t\titem_desc as string,\n\t\titem_qty as decimal(18,0),\n\t\tsold_date as date\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> salesRaw\nsource(output(\n\t\t{Entry No_} as integer,\n\t\titem_no as string,\n\t\titem_ref as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> referenceItem\nsalesRaw, referenceItem lookup(salesRaw@item_no == referenceItem@item_no,\n\tmultiple: false,\n\tpickup: 'first',\n\tasc({Entry No_}, true),\n\tbroadcast: 'auto')~> Lookup1\nLookup1 split(equals(salesRaw@item_no,referenceItem@item_no),\n\tdisjoint: false) ~> ConditionalSplit1@(ismatch, nomatch)\nConditionalSplit1@ismatch sink(input(\n\t\t{entry no} as integer,\n\t\tcustomer_no as string,\n\t\tcustomer_name as string,\n\t\titem_no as string,\n\t\titem_desc as string,\n\t\titem_qty as decimal(18,0),\n\t\tsold_date as date\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tformat: 'table',\n\tmapColumn(\n\t\t{entry no},\n\t\tcustomer_no,\n\t\tcustomer_name,\n\t\titem_no = item_ref,\n\t\titem_desc,\n\t\titem_qty,\n\t\tsold_date\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> sinkmatch\nConditionalSplit1@nomatch sink(input(\n\t\t{entry no} as integer,\n\t\tcustomer_no as string,\n\t\tcustomer_name as string,\n\t\titem_no as string,\n\t\titem_desc as string,\n\t\titem_qty as decimal(18,0),\n\t\tsold_date as date\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tformat: 'table',\n\tmapColumn(\n\t\t{entry no},\n\t\tcustomer_no,\n\t\tcustomer_name,\n\t\titem_no = ConditionalSplit1@nomatch@item_no,\n\t\titem_desc,\n\t\titem_qty,\n\t\tsold_date\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> sinknomatch"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/sumsalesADFAAS')]",
+				"[concat(variables('factoryId'), '/datasets/AzureSqlTable1')]",
+				"[concat(variables('factoryId'), '/datasets/salestransformed')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/asmSales')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "[parameters('sql_asm')]",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "SqlServerTable",
+				"schema": [
+					{
+						"name": "timestamp",
+						"type": "timestamp"
+					},
+					{
+						"name": "Entry No_",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Item No_",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Posting Date",
+						"type": "datetime",
+						"precision": 23,
+						"scale": 3
+					},
+					{
+						"name": "Entry Type",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Source No_",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Document No_",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Description",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Location Code",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Quantity",
+						"type": "decimal",
+						"precision": 38,
+						"scale": 20
+					},
+					{
+						"name": "Remaining Quantity",
+						"type": "decimal",
+						"precision": 38,
+						"scale": 20
+					},
+					{
+						"name": "Invoiced Quantity",
+						"type": "decimal",
+						"precision": 38,
+						"scale": 20
+					},
+					{
+						"name": "Applies-to Entry",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Open",
+						"type": "tinyint",
+						"precision": 3
+					},
+					{
+						"name": "Global Dimension 1 Code",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Global Dimension 2 Code",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Positive",
+						"type": "tinyint",
+						"precision": 3
+					},
+					{
+						"name": "Source Type",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Drop Shipment",
+						"type": "tinyint",
+						"precision": 3
+					},
+					{
+						"name": "Transaction Type",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Transport Method",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Country_Region Code",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Entry_Exit Point",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Document Date",
+						"type": "datetime",
+						"precision": 23,
+						"scale": 3
+					},
+					{
+						"name": "External Document No_",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Area",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Transaction Specification",
+						"type": "nvarchar"
+					},
+					{
+						"name": "No_ Series",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Document Type",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Document Line No_",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Order Type",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Order No_",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Order Line No_",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Dimension Set ID",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Assemble to Order",
+						"type": "tinyint",
+						"precision": 3
+					},
+					{
+						"name": "Job No_",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Job Task No_",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Job Purchase",
+						"type": "tinyint",
+						"precision": 3
+					},
+					{
+						"name": "Variant Code",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Qty_ per Unit of Measure",
+						"type": "decimal",
+						"precision": 38,
+						"scale": 20
+					},
+					{
+						"name": "Unit of Measure Code",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Derived from Blanket Order",
+						"type": "tinyint",
+						"precision": 3
+					},
+					{
+						"name": "Cross-Reference No_",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Originally Ordered No_",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Originally Ordered Var_ Code",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Out-of-Stock Substitution",
+						"type": "tinyint",
+						"precision": 3
+					},
+					{
+						"name": "Item Category Code",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Nonstock",
+						"type": "tinyint",
+						"precision": 3
+					},
+					{
+						"name": "Purchasing Code",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Product Group Code",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Completely Invoiced",
+						"type": "tinyint",
+						"precision": 3
+					},
+					{
+						"name": "Last Invoice Date",
+						"type": "datetime",
+						"precision": 23,
+						"scale": 3
+					},
+					{
+						"name": "Applied Entry to Adjust",
+						"type": "tinyint",
+						"precision": 3
+					},
+					{
+						"name": "Correction",
+						"type": "tinyint",
+						"precision": 3
+					},
+					{
+						"name": "Shipped Qty_ Not Returned",
+						"type": "decimal",
+						"precision": 38,
+						"scale": 20
+					},
+					{
+						"name": "Prod_ Order Comp_ Line No_",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Serial No_",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Lot No_",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Warranty Date",
+						"type": "datetime",
+						"precision": 23,
+						"scale": 3
+					},
+					{
+						"name": "Expiration Date",
+						"type": "datetime",
+						"precision": 23,
+						"scale": 3
+					},
+					{
+						"name": "Item Tracking",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Return Reason Code",
+						"type": "nvarchar"
+					}
+				]
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/sumsalesADFAAS')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "[parameters('adfaas')]",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "entry no",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "customer_no",
+						"type": "nvarchar"
+					},
+					{
+						"name": "customer_name",
+						"type": "nvarchar"
+					},
+					{
+						"name": "item_no",
+						"type": "nvarchar"
+					},
+					{
+						"name": "item_desc",
+						"type": "nvarchar"
+					},
+					{
+						"name": "item_qty",
+						"type": "decimal",
+						"precision": 18,
+						"scale": 0
+					},
+					{
+						"name": "sold_date",
+						"type": "date"
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "sum sales"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/AzureSqlTable1')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "[parameters('adfaas')]",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "Entry No_",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "item_no",
+						"type": "nvarchar"
+					},
+					{
+						"name": "item_ref",
+						"type": "nvarchar"
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "item_reference"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/salestransformed')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "[parameters('transformedtableSALES')]",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "entry no",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "customer_no",
+						"type": "nvarchar"
+					},
+					{
+						"name": "customer_name",
+						"type": "nvarchar"
+					},
+					{
+						"name": "item_no",
+						"type": "nvarchar"
+					},
+					{
+						"name": "item_desc",
+						"type": "nvarchar"
+					},
+					{
+						"name": "item_qty",
+						"type": "decimal",
+						"precision": 18,
+						"scale": 0
+					},
+					{
+						"name": "sold_date",
+						"type": "date"
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "salestransformed"
+				}
+			},
+			"dependsOn": []
+		}
+	]
+}
