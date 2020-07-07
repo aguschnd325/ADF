@@ -178,7 +178,7 @@
 				"typeProperties": {
 					"source": {
 						"type": "AzureSqlSource",
-						"sqlReaderQuery": "select max([entry no]) from dbo.[sum sales]",
+						"sqlReaderQuery": "select CONVERT(varchar(max),max([entry no])) from dbo.[sum sales]",
 						"queryTimeout": "02:00:00"
 					},
 					"dataset": {
