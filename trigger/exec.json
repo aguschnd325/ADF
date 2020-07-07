@@ -1,0 +1,17 @@
+{
+	"name": "exec",
+	"properties": {
+		"annotations": [],
+		"runtimeState": "Stopped",
+		"pipelines": [],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Minute",
+				"interval": 1,
+				"startTime": "2020-07-07T17:17:00.000Z",
+				"timeZone": "UTC"
+			}
+		}
+	}
+}
