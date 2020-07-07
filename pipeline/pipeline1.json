@@ -38,7 +38,7 @@
 				"type": "Copy",
 				"dependsOn": [
 					{
-						"activity": "Lookup1",
+						"activity": "find lastentry no sumsales",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -174,7 +174,7 @@
 				]
 			},
 			{
-				"name": "Lookup1",
+				"name": "find lastentry no sumsales",
 				"type": "Lookup",
 				"dependsOn": [],
 				"policy": {
