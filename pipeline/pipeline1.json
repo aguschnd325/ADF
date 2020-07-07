@@ -191,11 +191,6 @@
 				}
 			}
 		],
-		"parameters": {
-			"rawsalesentryno": {
-				"type": "int"
-			}
-		},
 		"variables": {
 			"rawsalesentryno": {
 				"type": "String",
