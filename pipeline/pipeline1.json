@@ -7,7 +7,7 @@
 				"type": "ExecuteDataFlow",
 				"dependsOn": [
 					{
-						"activity": "copy data asm",
+						"activity": "Copy data1",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -33,11 +33,11 @@
 				}
 			},
 			{
-				"name": "copy data asm",
+				"name": "Copy data1",
 				"type": "Copy",
 				"dependsOn": [
 					{
-						"activity": "Set variable1",
+						"activity": "Stored procedure1",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -54,16 +54,11 @@
 				"typeProperties": {
 					"source": {
 						"type": "SqlServerSource",
-						"sqlReaderQuery": {
-							"value": "=@concat(\n'select top 20 ile.[Entry No_],(ile.[Item No_])as item_no,i.Description as item_name,ile.[Source No_] as cust_no, c.Name as cust_name,\n  ile.Quantity, ile.[Posting Date] as sold_date \nfrom [LF$Item Ledger Entry] ile\n  left join LF$Customer c on ile.[Source No_]=c.[No_]\n  left join LF$Item i on ile.[Item No_]=i.[No_]\n  where ([Posting Date]='2020-06-30') and \n  (ile.[Source No_] like 'C%') and \n  (ile.[Entry No_] between ',variables('lastsumsalesentry'),' and (select top 20 max(ile.[Entry No_])\nfrom [LF$Item Ledger Entry] ile\n  where ([Posting Date]='2020-06-30') and (ile.[Source No_] like 'C%'))\n  )\nfrom [LF$Item Ledger Entry] ile\n  left join LF$Customer c on ile.[Source No_]=c.[No_]\n  left join LF$Item i on ile.[Item No_]=i.[No_]\n  where ([Posting Date]='2020-06-30') and (ile.[Source No_] like 'C%')))\n  order by ile.[Entry No_]'\n  )",
-							"type": "Expression"
-						},
+						"sqlReaderQuery": "select top 20 ile.[Entry No_],(ile.[Item No_])as item_no,i.Description as item_name,ile.[Source No_] as cust_no, c.Name as cust_name,\n  ile.Quantity, ile.[Posting Date] as sold_date \nfrom [LF$Item Ledger Entry] ile\n  left join LF$Customer c on ile.[Source No_]=c.[No_]\n  left join LF$Item i on ile.[Item No_]=i.[No_]\n  where ([Posting Date]='2020-06-30') and (ile.[Source No_] like 'C%')",
 						"queryTimeout": "02:00:00"
 					},
 					"sink": {
-						"type": "AzureSqlSink",
-						"preCopyScript": "select top 20 ile.[Entry No_],(ile.[Item No_])as item_no,i.Description as item_name,ile.[Source No_] as cust_no, c.Name as cust_name,\n  ile.Quantity, ile.[Posting Date] as sold_date \nfrom [LF$Item Ledger Entry] ile\n  left join LF$Customer c on ile.[Source No_]=c.[No_]\n  left join LF$Item i on ile.[Item No_]=i.[No_]\n  where ([Posting Date]='2020-06-30') and (ile.[Source No_] like 'C%') and (ile.[Entry No_] between (select [entry no] from dbo.[sum sales]\n  where [entry no]=(select max([entry no]) from dbo.[sum sales])) and (select top 20 max(ile.[Entry No_])\nfrom [LF$Item Ledger Entry] ile\n\n  left join LF$Customer c on ile.[Source No_]=c.[No_]\n  left join LF$Item i on ile.[Item No_]=i.[No_]\n  where ([Posting Date]='2020-06-30') and (ile.[Source No_] like 'C%')))",
-						"disableMetricsCollection": false
+						"type": "AzureSqlSink"
 					},
 					"enableStaging": false,
 					"translator": {
@@ -163,8 +158,8 @@
 				]
 			},
 			{
-				"name": "Lookup1",
-				"type": "Lookup",
+				"name": "Stored procedure1",
+				"type": "SqlServerStoredProcedure",
 				"dependsOn": [],
 				"policy": {
 					"timeout": "7.00:00:00",
@@ -175,44 +170,14 @@
 				},
 				"userProperties": [],
 				"typeProperties": {
-					"source": {
-						"type": "AzureSqlSource",
-						"sqlReaderQuery": "select max([entry no]) from dbo.[sum sales]",
-						"queryTimeout": "02:00:00"
-					},
-					"dataset": {
-						"referenceName": "sumsalesADFAAS",
-						"type": "DatasetReference"
-					}
-				}
-			},
-			{
-				"name": "Set variable1",
-				"type": "SetVariable",
-				"dependsOn": [
-					{
-						"activity": "Lookup1",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
-				"userProperties": [],
-				"typeProperties": {
-					"variableName": "lastsumsalesentry",
-					"value": {
-						"value": "@activity('Lookup1').output",
-						"type": "Expression"
-					}
+					"storedProcedureName": "[dbo].[cleanse_tableRawandCooked]"
+				},
+				"linkedServiceName": {
+					"referenceName": "adfaas",
+					"type": "LinkedServiceReference"
 				}
 			}
 		],
-		"variables": {
-			"lastsumsalesentry": {
-				"type": "String",
-				"defaultValue": "0"
-			}
-		},
 		"annotations": []
 	},
 	"type": "Microsoft.DataFactory/factories/pipelines"
