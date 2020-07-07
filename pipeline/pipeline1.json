@@ -210,7 +210,8 @@
 		],
 		"variables": {
 			"rawsalesentryno": {
-				"type": "String"
+				"type": "String",
+				"defaultValue": "0"
 			}
 		},
 		"annotations": []
