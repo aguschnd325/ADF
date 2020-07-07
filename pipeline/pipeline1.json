@@ -47,11 +47,13 @@
 				"typeProperties": {
 					"source": {
 						"type": "SqlServerSource",
-						"sqlReaderQuery": "select top 20 ile.[Entry No_],(ile.[Item No_])as item_no,i.Description as item_name,ile.[Source No_] as cust_no, c.Name as cust_name,\n  ile.Quantity, ile.[Posting Date] as sold_date \nfrom [LF$Item Ledger Entry] ile\n  left join LF$Customer c on ile.[Source No_]=c.[No_]\n  left join LF$Item i on ile.[Item No_]=i.[No_]\n  where ([Posting Date]='2020-06-30') and (ile.[Source No_] like 'C%')",
+						"sqlReaderQuery": "select top 20 ile.[Entry No_],(ile.[Item No_])as item_no,i.Description as item_name,ile.[Source No_] as cust_no, c.Name as cust_name,\n  ile.Quantity, ile.[Posting Date] as sold_date \nfrom [LF$Item Ledger Entry] ile\n  left join LF$Customer c on ile.[Source No_]=c.[No_]\n  left join LF$Item i on ile.[Item No_]=i.[No_]\n  where ([Posting Date]='2020-06-30') and (ile.[Source No_] like 'C%') and (ile.[Entry No_] between (select [entry no] from dbo.[sum sales]\n  where [entry no]=(select max([entry no]) from dbo.[sum sales])) and (select top 20 max(ile.[Entry No_])\nfrom [LF$Item Ledger Entry] ile\n\n  left join LF$Customer c on ile.[Source No_]=c.[No_]\n  left join LF$Item i on ile.[Item No_]=i.[No_]\n  where ([Posting Date]='2020-06-30') and (ile.[Source No_] like 'C%')))",
 						"queryTimeout": "02:00:00"
 					},
 					"sink": {
-						"type": "AzureSqlSink"
+						"type": "AzureSqlSink",
+						"preCopyScript": "select top 20 ile.[Entry No_],(ile.[Item No_])as item_no,i.Description as item_name,ile.[Source No_] as cust_no, c.Name as cust_name,\n  ile.Quantity, ile.[Posting Date] as sold_date \nfrom [LF$Item Ledger Entry] ile\n  left join LF$Customer c on ile.[Source No_]=c.[No_]\n  left join LF$Item i on ile.[Item No_]=i.[No_]\n  where ([Posting Date]='2020-06-30') and (ile.[Source No_] like 'C%') and (ile.[Entry No_] between (select [entry no] from dbo.[sum sales]\n  where [entry no]=(select max([entry no]) from dbo.[sum sales])) and (select top 20 max(ile.[Entry No_])\nfrom [LF$Item Ledger Entry] ile\n\n  left join LF$Customer c on ile.[Source No_]=c.[No_]\n  left join LF$Item i on ile.[Item No_]=i.[No_]\n  where ([Posting Date]='2020-06-30') and (ile.[Source No_] like 'C%')))",
+						"disableMetricsCollection": false
 					},
 					"enableStaging": false,
 					"translator": {
@@ -149,8 +151,64 @@
 						"type": "DatasetReference"
 					}
 				]
+			},
+			{
+				"name": "dataflow1",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					}
+				}
+			},
+			{
+				"name": "copy postgre",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzurePostgreSqlSource"
+					},
+					"enableStaging": false
+				},
+				"inputs": [
+					{
+						"referenceName": "tmj_db",
+						"type": "DatasetReference"
+					}
+				]
 			}
 		],
+		"parameters": {
+			"lastsumsalesentry": {
+				"type": "int",
+				"defaultValue": 0
+			}
+		},
+		"variables": {
+			"lastsumsalesentry": {
+				"type": "String",
+				"defaultValue": "0"
+			}
+		},
 		"annotations": []
 	},
 	"type": "Microsoft.DataFactory/factories/pipelines"
