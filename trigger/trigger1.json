@@ -3,13 +3,20 @@
 	"properties": {
 		"annotations": [],
 		"runtimeState": "Started",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "pipeline1",
+					"type": "PipelineReference"
+				}
+			}
+		],
 		"pipeline": {
 			"pipelineReference": {
 				"referenceName": "pipeline1",
 				"type": "PipelineReference"
 			}
 		},
-		"type": "TumblingWindowTrigger",
 		"typeProperties": {
 			"frequency": "Minute",
 			"interval": 5,
