@@ -933,9 +933,9 @@
 				"type": "ScheduleTrigger",
 				"typeProperties": {
 					"recurrence": {
-						"frequency": "Minute",
-						"interval": 5,
-						"startTime": "07/08/2020 4:30 AM",
+						"frequency": "Hour",
+						"interval": 1,
+						"startTime": "2020-07-08T04:40:00.000Z+7",
 						"timeZone": "UTC"
 					}
 				}
