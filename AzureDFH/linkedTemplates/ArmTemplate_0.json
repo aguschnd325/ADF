@@ -915,7 +915,7 @@
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/trigger1')]",
+			"name": "[concat(parameters('factoryName'), '/executepipeline')]",
 			"type": "Microsoft.DataFactory/factories/triggers",
 			"apiVersion": "2018-06-01",
 			"properties": {
@@ -934,8 +934,8 @@
 				"typeProperties": {
 					"recurrence": {
 						"frequency": "Minute",
-						"interval": 5,
-						"startTime": "2020-07-08T09:28:00.000Z",
+						"interval": 1,
+						"startTime": "2020-07-08T09:31:00.000Z",
 						"timeZone": "UTC"
 					}
 				}
