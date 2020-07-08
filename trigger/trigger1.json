@@ -2,14 +2,22 @@
 	"name": "trigger1",
 	"properties": {
 		"annotations": [],
-		"runtimeState": "Stopped",
+		"runtimeState": "Started",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "pipeline1",
+					"type": "PipelineReference"
+				}
+			}
+		],
 		"pipeline": {
 			"pipelineReference": {
 				"referenceName": "pipeline1",
 				"type": "PipelineReference"
-			}
+			},
+			"parameters": []
 		},
-		"type": "TumblingWindowTrigger",
 		"typeProperties": {
 			"frequency": "Minute",
 			"interval": 7,
