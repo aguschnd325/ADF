@@ -17,6 +17,7 @@
 				"type": "PipelineReference"
 			}
 		},
+		"type": "ScheduledTrigger",
 		"typeProperties": {
 			"frequency": "Minute",
 			"interval": 5,
