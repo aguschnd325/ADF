@@ -935,8 +935,8 @@
 					"recurrence": {
 						"frequency": "Hour",
 						"interval": 1,
-						"startTime": "2020-07-08T04:40:00.000Z+0700",
-						"timeZone": "UTC"
+						"startTime": "2020-07-08T04:40:00.000Z",
+						"timeZone": "UTC+0700"
 					}
 				}
 			},
