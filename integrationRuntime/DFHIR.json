@@ -1,0 +1,6 @@
+{
+	"name": "DFHIR",
+	"properties": {
+		"type": "SelfHosted"
+	}
+}
