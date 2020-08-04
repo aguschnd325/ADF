@@ -65,6 +65,7 @@
 						"type": "AzureSqlSink"
 					},
 					"enableStaging": false,
+					"parallelCopies": 10,
 					"translator": {
 						"type": "TabularTranslator",
 						"mappings": [
