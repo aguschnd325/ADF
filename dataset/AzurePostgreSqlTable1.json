@@ -8,5 +8,6 @@
 		"annotations": [],
 		"type": "AzurePostgreSqlTable",
 		"schema": []
-	}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
 }
