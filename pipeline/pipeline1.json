@@ -26,9 +26,9 @@
 						"referenceName": "lookupflow",
 						"type": "DataFlowReference"
 					},
-					"compute": {
-						"coreCount": 8,
-						"computeType": "General"
+					"integrationRuntime": {
+						"referenceName": "DebugEnv",
+						"type": "IntegrationRuntimeReference"
 					}
 				}
 			},
