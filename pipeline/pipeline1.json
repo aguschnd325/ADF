@@ -27,7 +27,7 @@
 						"type": "DataFlowReference"
 					},
 					"integrationRuntime": {
-						"referenceName": "DebugEnv",
+						"referenceName": "OpsEnv",
 						"type": "IntegrationRuntimeReference"
 					}
 				}
