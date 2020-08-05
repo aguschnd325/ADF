@@ -70,9 +70,9 @@
 								}
 							},
 							"staging": {},
-							"compute": {
-								"coreCount": 8,
-								"computeType": "General"
+							"integrationRuntime": {
+								"referenceName": "OpsEnv",
+								"type": "IntegrationRuntimeReference"
 							}
 						}
 					},
@@ -282,6 +282,7 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/dataflows/lookupflow')]",
+				"[concat(variables('factoryId'), '/integrationRuntimes/OpsEnv')]",
 				"[concat(variables('factoryId'), '/datasets/asmSales')]",
 				"[concat(variables('factoryId'), '/datasets/sumsalesADFAAS')]",
 				"[concat(variables('factoryId'), '/linkedServices/adfaas')]"
@@ -865,7 +866,7 @@
 			"apiVersion": "2018-06-01",
 			"properties": {
 				"annotations": [],
-				"runtimeState": "Stopped",
+				"runtimeState": "Started",
 				"pipelines": [
 					{
 						"pipelineReference": {
@@ -888,6 +889,16 @@
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/pipelines/pipeline1')]"
 			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DFHIR')]",
+			"type": "Microsoft.DataFactory/factories/integrationRuntimes",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "SelfHosted",
+				"typeProperties": {}
+			},
+			"dependsOn": []
 		},
 		{
 			"name": "[concat(parameters('factoryName'), '/lookupflow')]",
@@ -946,12 +957,40 @@
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/DFHIR')]",
+			"name": "[concat(parameters('factoryName'), '/DebugEnv')]",
 			"type": "Microsoft.DataFactory/factories/integrationRuntimes",
 			"apiVersion": "2018-06-01",
 			"properties": {
-				"type": "SelfHosted",
-				"typeProperties": {}
+				"type": "Managed",
+				"typeProperties": {
+					"computeProperties": {
+						"location": "AutoResolve",
+						"dataFlowProperties": {
+							"computeType": "MemoryOptimized",
+							"coreCount": 32,
+							"timeToLive": 0
+						}
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/OpsEnv')]",
+			"type": "Microsoft.DataFactory/factories/integrationRuntimes",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "Managed",
+				"typeProperties": {
+					"computeProperties": {
+						"location": "AutoResolve",
+						"dataFlowProperties": {
+							"computeType": "General",
+							"coreCount": 80,
+							"timeToLive": 0
+						}
+					}
+				}
 			},
 			"dependsOn": []
 		}
