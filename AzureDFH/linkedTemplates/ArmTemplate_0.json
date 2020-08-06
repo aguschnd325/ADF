@@ -98,35 +98,6 @@
 			"dependsOn": []
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/DFHIR')]",
-			"type": "Microsoft.DataFactory/factories/integrationRuntimes",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"type": "SelfHosted",
-				"typeProperties": {}
-			},
-			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/DebugEnv')]",
-			"type": "Microsoft.DataFactory/factories/integrationRuntimes",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"type": "Managed",
-				"typeProperties": {
-					"computeProperties": {
-						"location": "AutoResolve",
-						"dataFlowProperties": {
-							"computeType": "MemoryOptimized",
-							"coreCount": 32,
-							"timeToLive": 0
-						}
-					}
-				}
-			},
-			"dependsOn": []
-		},
-		{
 			"name": "[concat(parameters('factoryName'), '/OpsEnv')]",
 			"type": "Microsoft.DataFactory/factories/integrationRuntimes",
 			"apiVersion": "2018-06-01",
@@ -746,9 +717,9 @@
 								}
 							},
 							"staging": {},
-							"integrationRuntime": {
-								"referenceName": "OpsEnv",
-								"type": "IntegrationRuntimeReference"
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
 							}
 						}
 					},
@@ -954,11 +925,11 @@
 						"type": "String"
 					}
 				},
-				"annotations": []
+				"annotations": [],
+				"lastPublishTime": "2020-08-05T03:11:30Z"
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/dataflows/lookupflow')]",
-				"[concat(variables('factoryId'), '/integrationRuntimes/OpsEnv')]",
 				"[concat(variables('factoryId'), '/datasets/asmSales')]",
 				"[concat(variables('factoryId'), '/datasets/sumsalesADFAAS')]",
 				"[concat(variables('factoryId'), '/linkedServices/adfaas')]"
@@ -970,7 +941,7 @@
 			"apiVersion": "2018-06-01",
 			"properties": {
 				"annotations": [],
-				"runtimeState": "Started",
+				"runtimeState": "Stopped",
 				"pipelines": [
 					{
 						"pipelineReference": {
@@ -985,7 +956,7 @@
 					"recurrence": {
 						"frequency": "Hour",
 						"interval": 1,
-						"startTime": "2020-07-08T04:40:00.000Z",
+						"startTime": "2020-07-08T04:40:00Z",
 						"timeZone": "UTC+0700"
 					}
 				}
