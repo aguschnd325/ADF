@@ -12,5 +12,6 @@
 			"schema": "public",
 			"table": "tr_lbhp"
 		}
-	}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
 }

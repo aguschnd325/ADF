@@ -26,9 +26,9 @@
 						"referenceName": "lookupflow",
 						"type": "DataFlowReference"
 					},
-					"compute": {
-						"coreCount": 8,
-						"computeType": "General"
+					"integrationRuntime": {
+						"referenceName": "OpsEnv",
+						"type": "IntegrationRuntimeReference"
 					}
 				}
 			},
@@ -65,6 +65,7 @@
 						"type": "AzureSqlSink"
 					},
 					"enableStaging": false,
+					"parallelCopies": 10,
 					"translator": {
 						"type": "TabularTranslator",
 						"mappings": [
@@ -230,7 +231,8 @@
 				"type": "String"
 			}
 		},
-		"annotations": []
+		"annotations": [],
+		"lastPublishTime": "2020-08-05T03:11:30Z"
 	},
 	"type": "Microsoft.DataFactory/factories/pipelines"
 }
